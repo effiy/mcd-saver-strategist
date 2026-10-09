@@ -1,0 +1,23 @@
+# 运行产物 / 临时文件
+tmp/
+dist/
+*.zip
+
+# WorkBuddy 内部数据（记忆、技能本地副本），不随仓库发布
+.workbuddy/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
+
+# 本地凭证（切勿提交真实 Token）
+.env
+*.local.json
+mcp.local.json

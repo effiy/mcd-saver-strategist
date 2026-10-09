@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麦门省钱精算师 · 优化结果演示</title>
+<style>
+  :root{
+    --mcd-red:#DA291C; --mcd-gold:#FFC72C; --ink:#1a1a1a; --sub:#5f6368;
+    --line:#e8eaed; --bg:#f7f7f8; --card:#ffffff; --good:#0a8f4d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6;padding:32px 20px}
+  .wrap{max-width:960px;margin:0 auto}
+  header{text-align:center;margin-bottom:28px}
+  .logo{display:inline-flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);letter-spacing:.08em}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--mcd-red)}
+  h1{font-size:30px;margin:10px 0 6px;letter-spacing:-.01em}
+  h1 .hl{color:var(--mcd-red)}
+  .sub{color:var(--sub);font-size:14px}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:26px 0}
+  .box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+  .box.old{border-color:#f0e0df}
+  .box.new{border-color:#f6dfa0;box-shadow:0 8px 26px rgba(218,41,28,.10)}
+  .box .label{font-size:13px;color:var(--sub);margin-bottom:6px}
+  .box .price{font-size:34px;font-weight:750;letter-spacing:-.02em}
+  .box.old .price{color:#9aa0a6;text-decoration:line-through;text-decoration-thickness:2px}
+  .box.new .price{color:var(--mcd-red)}
+  .box .desc{font-size:13px;color:var(--sub);margin-top:6px}
+  .save{display:inline-block;margin-top:10px;background:var(--good);color:#fff;font-size:13px;font-weight:700;padding:4px 12px;border-radius:999px}
+  .sec-title{font-size:16px;font-weight:700;margin:30px 0 14px;display:flex;align-items:center;gap:8px}
+  .sec-title::before{content:"";width:4px;height:16px;background:var(--mcd-red);border-radius:2px}
+  .plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 22px;margin-bottom:12px;display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:start}
+  .plan.top{border-color:var(--mcd-gold);background:linear-gradient(180deg,#fffdf5,#fff)}
+  .rank{font-size:26px;text-align:center;padding-top:2px}
+  .lines{font-size:14px}
+  .lines .ln{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line)}
+  .lines .ln:last-child{border-bottom:none}
+  .lines .ln .nm{color:var(--ink)}
+  .lines .ln .pr{color:var(--sub);font-variant-numeric:tabular-nums}
+  .tag{font-size:11px;background:#fff3ef;color:var(--mcd-red);border-radius:6px;padding:1px 6px;margin-left:6px}
+  .meta{margin-top:8px;font-size:12.5px;color:var(--sub)}
+  .meta .chip{display:inline-block;background:#f1f3f4;border-radius:6px;padding:2px 8px;margin:3px 6px 0 0}
+  .chip.coupon{background:#fff7e0;color:#8a6100}
+  .chip.gift{background:#fdeef0;color:var(--mcd-red)}
+  .pay{text-align:right;min-width:120px}
+  .pay .t{font-size:22px;font-weight:750;color:var(--mcd-red);font-variant-numeric:tabular-nums}
+  .pay .r{font-size:12px;color:var(--sub);margin-top:2px}
+  .pay .pct{font-size:12px;color:var(--good);font-weight:700;margin-top:4px}
+  .foot{margin-top:28px;font-size:12.5px;color:var(--sub);text-align:center;border-top:1px solid var(--line);padding-top:16px}
+  .foot code{background:#f1f3f4;padding:2px 6px;border-radius:5px;font-size:12px}
+  @media(max-width:640px){.compare{grid-template-columns:1fr}.plan{grid-template-columns:40px 1fr;}.pay{grid-column:2;text-align:left;margin-top:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="dot"></span><span class="dot" style="opacity:.55"></span> MCD-SAVER-STRATEGIST · 基于麦当劳 MCP</div>
+    <h1>麦门省钱<span class="hl">精算师</span></h1>
+    <div class="sub">需求：想吃「巨无霸 + 中薯条 + 可乐」，一个人吃，尽量便宜 · 门店 SZ0001 · 示例数据快照</div>
+  </header>
+
+  <div class="compare">
+    <div class="box old">
+      <div class="label">① 直选（不用券）</div>
+      <div class="price">¥47.00</div>
+      <div class="desc">巨无霸 ¥25.5 + 中薯条 ¥12.5 + 可乐 ¥9.0</div>
+    </div>
+    <div class="box new">
+      <div class="label">② 精算师最优解</div>
+      <div class="price">¥21.90</div>
+      <div class="desc">「1+1 随心配 ¥12.9」覆盖巨无霸 + 中薯条，另单点可乐</div>
+      <span class="save">省 ¥25.10 · 53% OFF</span>
+    </div>
+  </div>
+
+  <div class="sec-title">Top 3 最优方案</div>
+
+  <div class="plan top">
+    <div class="rank">🥇</div>
+    <div>
+      <div class="lines">
+        <div class="ln"><span class="nm">1+1 随心配（巨无霸 + 中薯条）<span class="tag">组合价</span></span><span class="pr">¥12.90</span></div>
+        <div class="ln"><span class="nm">可口可乐 中杯</span><span class="pr">¥9.00</span></div>
+      </div>
+      <div class="meta">
+        <span class="chip coupon">🎟️ 1+1 随心配 ¥12.9</span>
+        <span class="chip">约 1040 kcal</span>
+        <span class="chip">预算 ¥45 内 ✓</span>
+      </div>
+    </div>
+    <div class="pay"><div class="t">¥21.90</div><div class="r">原价 ¥47.00</div><div class="pct">省 53%</div></div>
+  </div>
+
+  <div class="plan">
+    <div class="rank">🥈</div>
+    <div>
+      <div class="lines">
+        <div class="ln"><span class="nm">1+1 随心配（巨无霸 + 中薯条）<span class="tag">组合价</span></span><span class="pr">¥12.90</span></div>
+        <div class="ln"><span class="nm">可口可乐 中杯</span><span class="pr">¥9.00</span></div>
+        <div class="ln"><span class="nm">圆筒冰淇淋</span><span class="pr">¥4.00</span></div>
+      </div>
+      <div class="meta">
+        <span class="chip coupon">🎟️ 1+1 随心配 ¥12.9</span>
+        <span class="chip">约 1190 kcal</span>
+      </div>
+    </div>
+    <div class="pay"><div class="t">¥25.90</div><div class="r">原价 ¥51.00</div><div class="pct">省 49%</div></div>
+  </div>
+
+  <div class="plan">
+    <div class="rank">🥉</div>
+    <div>
+      <div class="lines">
+        <div class="ln"><span class="nm">1+1 随心配（巨无霸 + 大薯条）<span class="tag">组合价</span></span><span class="pr">¥12.90</span></div>
+        <div class="ln"><span class="nm">大薯条</span><span class="pr">¥15.00</span></div>
+      </div>
+      <div class="meta">
+        <span class="chip coupon">🎟️ 1+1 随心配 ¥12.9</span>
+        <span class="chip">约 1140 kcal</span>
+      </div>
+    </div>
+    <div class="pay"><div class="t">¥27.90</div><div class="r">原价 ¥49.50</div><div class="pct">省 44%</div></div>
+  </div>
+
+  <div class="foot">
+    优化器共评估 13 个可行方案 · 金额由 <code>scripts/optimizer.py</code> 确定性计算，非大模型口算<br>
+    本页为示例数据快照 · 实际价格与券可用性以麦当劳 MCP 实时返回为准
+  </div>
+</div>
+</body>
+</html>
