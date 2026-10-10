@@ -40,7 +40,7 @@
 1. 用 `skill-creator` 规范初始化 Skill 目录结构（`SKILL.md` + `scripts/` + `references/`）。
 2. 实现 `scripts/optimizer.py`：把优惠券抽象为 5 类（单品改价/折扣/满减/组合价/赠品），
    在「菜单 × 券」组合空间里做带剪枝的穷举，输出总价最低的 Top-N 方案。
-3. 编写 `scripts/selftest.py`：13 项断言覆盖各券型、叠加互斥、预算/热量过滤与确定性。
+3. 编写 `scripts/selftest.py`：19 项断言覆盖各券型、叠加互斥、预算/热量过滤、券渠道过滤、外送费结算与确定性。
 4. 编写 `scripts/sample_data/`：可离线跑通的脱敏示例数据。
 5. 编写 `references/mcp-tools.md`（Tool 清单 + 字段映射）与
    `references/coupon-strategy.md`（券建模与省钱策略）。
@@ -50,7 +50,7 @@
 
 **WorkBuddy 的验证：**
 - 运行 `python optimizer.py`：示例请求下最优方案 ¥21.90（原价 ¥47.00，省 53%）。
-- 运行 `python selftest.py`：**13 passed, 0 failed**。
+- 运行 `python selftest.py`：**19 passed, 0 failed**。
 - 补齐参赛文件：`README.md`、`MCP_INTEGRATION.md`、`mcp-config.example.json`，
   并以官方原文生成 `CONTEST_DECLARATION.md`。
 

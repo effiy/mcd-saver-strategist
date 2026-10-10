@@ -67,8 +67,12 @@ agent_created: true
 ```
 tmp/menu.json     # {store_code, currency, items:[{code,name,category,price,calories,tags}]}
 tmp/coupons.json  # {coupons:[...]}  见 references/coupon-strategy.md 的券类型定义
-tmp/request.json  # {wants, budget, max_calories, max_items, allow_extras}
+tmp/request.json  # {wants, budget, max_calories, max_items, allow_extras,
+                  #  dining_mode:"pickup"|"delivery", delivery_fee(外送时必填)}
 ```
+
+券的场景字段：能判断「仅到店 / 仅外送可用」的券，标注 `"channel":"pickup"` 或 `"delivery"`，
+不确定就留空（默认 `any`）。外送场景优化器会自动剔除不可用券，并把配送费计入总价。
 
 然后运行：
 
@@ -78,7 +82,7 @@ python scripts/optimizer.py <临时目录>
 
 - 加 `--json` 可同时输出结构化 JSON，便于你读取字段。
 - 想看内置样例：`python scripts/optimizer.py sample_data`
-- 改完逻辑务必跑 `python scripts/selftest.py`（13 项断言应全绿）。
+- 改完逻辑务必跑 `python scripts/selftest.py`（19 项断言应全绿）。
 
 ### 第 3 步：把结果讲给用户
 
@@ -111,7 +115,7 @@ python scripts/optimizer.py <临时目录>
 ## 资源索引
 
 - [`scripts/optimizer.py`](scripts/optimizer.py) —— 确定性优惠组合优化器（纯标准库）。
-- [`scripts/selftest.py`](scripts/selftest.py) —— 13 项自测，改动逻辑后必跑。
+- [`scripts/selftest.py`](scripts/selftest.py) —— 19 项自测，改动逻辑后必跑。
 - [`scripts/sample_data/`](scripts/sample_data/) —— 可离线跑通的示例菜单/券/请求。
 - [`references/mcp-tools.md`](references/mcp-tools.md) —— 用到的 MCP Tool 清单与字段映射表。
 - [`references/coupon-strategy.md`](references/coupon-strategy.md) —— 5 类优惠券建模、叠加与互斥规则、省钱策略。

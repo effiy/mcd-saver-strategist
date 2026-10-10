@@ -47,13 +47,19 @@ coupons.json  (所有券统一放在 coupons 数组里, 用 type 区分)
       ]
     }
 
+  可选字段 channel 控制券的适用场景, 取值 "any"(默认) / "pickup" / "delivery"。
+  例: 门店券通常仅到店可用 {"id": "S1", ..., "channel": "pickup"};
+      外送券 {"id": "D1", ..., "channel": "delivery"}。
+
 request.json
     {
       "wants": ["巨无霸", "薯条", "可乐"],   # 用户想吃的东西 (按名称模糊匹配)
-      "budget": 45.0,                       # 可选, 总价上限
+      "budget": 45.0,                       # 可选, 总价上限 (含外送费)
       "max_calories": 1000,                 # 可选, 热量上限
       "max_items": 5,                       # 可选, 最多几件
-      "allow_extras": true                  # 是否允许为了用券而加购
+      "allow_extras": true,                 # 是否允许为了用券而加购
+      "dining_mode": "pickup",              # 可选, "pickup"(默认) / "delivery"
+      "delivery_fee": 9.0                   # 可选, dining_mode=delivery 时计入总价
     }
 
 输出
@@ -113,6 +119,22 @@ def match_want(want: str, items: Sequence[Dict[str, Any]]) -> List[Dict[str, Any
             hits.append((score, it))
     hits.sort(key=lambda x: (-x[0], x[1]["price"]))
     return [it for _, it in hits]
+
+
+def filter_coupons_for_mode(
+    coupons: Sequence[Dict[str, Any]], dining_mode: str
+) -> List[Dict[str, Any]]:
+    """按用餐场景过滤券: channel 为 any 或与当前场景一致者可用。
+
+    该字段是可选扩展; 未标 channel 的券视为 any, 保持向后兼容。
+    """
+    mode = (dining_mode or "pickup").strip().lower()
+    out: List[Dict[str, Any]] = []
+    for c in coupons:
+        ch = str(c.get("channel", "any")).strip().lower() or "any"
+        if ch in ("any", mode):
+            out.append(c)
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -349,7 +371,10 @@ def optimize(
     request: Dict[str, Any],
 ) -> Dict[str, Any]:
     items = menu["items"]
-    coupons = coupons_payload.get("coupons", [])
+    all_coupons = coupons_payload.get("coupons", [])
+    mode = (request.get("dining_mode") or "pickup").strip().lower()
+    coupons = filter_coupons_for_mode(all_coupons, mode)
+    delivery_fee = float(request.get("delivery_fee", 0) or 0) if mode == "delivery" else 0.0
     idx = item_index(items)
 
     # 无券基线: 用户想要的最便宜直选
@@ -372,12 +397,13 @@ def optimize(
             if gift_code in idx:
                 cal += int(idx[gift_code].get("calories", 0))
 
-        if request.get("budget") is not None and res["total"] > float(request["budget"]):
+        total = round(res["total"] + delivery_fee, 2)
+        if request.get("budget") is not None and total > float(request["budget"]):
             continue
         if request.get("max_calories") is not None and cal > int(request["max_calories"]):
             continue
 
-        key = (codes, res["total"])
+        key = (codes, total)
         if key in seen:
             continue
         seen.add(key)
@@ -393,7 +419,8 @@ def optimize(
                         for cid in res.get("coupon_ids", [])],
             "subtotal": res["subtotal"],
             "threshold_discount": res.get("threshold_discount", 0.0),
-            "total": res["total"],
+            "delivery_fee": round(delivery_fee, 2),
+            "total": total,
             "raw_total": round(raw, 2),
             "coupon_saving": saving,
             "saving_pct": round(saving / raw, 4) if raw else 0.0,
@@ -408,6 +435,8 @@ def optimize(
     return {
         "store_code": menu.get("store_code", ""),
         "currency": menu.get("currency", "CNY"),
+        "dining_mode": mode,
+        "delivery_fee": round(delivery_fee, 2),
         "baseline": {"items": [it["name"] for it in baseline_basket], "total": baseline_total},
         "plans": plans[:TOP_N_PLANS],
         "plan_pool_size": len(plans),
@@ -427,6 +456,8 @@ def _make_notes(plan: Dict[str, Any], baseline_total: float, request: Dict[str, 
         notes.append(f"触发满减, 立减 {plan['threshold_discount']:.2f} 元")
     if plan["gifts"]:
         notes.append("达成赠品条件: " + "、".join(g["name"] for g in plan["gifts"]))
+    if plan.get("delivery_fee", 0) > 0:
+        notes.append(f"已含外送费 {plan['delivery_fee']:.2f} 元")
     if request.get("budget") is not None:
         notes.append(f"预算 {request['budget']} 元内 ✓")
     return notes
@@ -443,7 +474,9 @@ def format_report(result: Dict[str, Any], request: Dict[str, Any]) -> str:
     out.append("  麦门省钱精算师 · 优化结果")
     out.append("=" * 60)
     base = result["baseline"]
-    out.append(f"门店: {result.get('store_code','')}   想吃的: {'、'.join(base['items']) or '(未指定)'}")
+    mode = result.get("dining_mode", "pickup")
+    mode_cn = {"pickup": "到店自取", "delivery": "外送"}.get(mode, mode)
+    out.append(f"门店: {result.get('store_code','')}   场景: {mode_cn}   想吃的: {'、'.join(base['items']) or '(未指定)'}")
     out.append(f"不使用优惠券的话, 直选约 {sym}{base['total']:.2f}")
     out.append("-" * 60)
     if not result["plans"]:
@@ -459,6 +492,8 @@ def format_report(result: Dict[str, Any], request: Dict[str, Any]) -> str:
             out.append(f"      · {ln['name']}  {sym}{ln['price']:.2f}{tag}")
         if p["threshold_discount"] > 0:
             out.append(f"      · 满减抵扣  -{sym}{p['threshold_discount']:.2f}")
+        if p.get("delivery_fee", 0) > 0:
+            out.append(f"      · 外送费    +{sym}{p['delivery_fee']:.2f}")
         if p["gifts"]:
             out.append("      🎁 赠品: " + "、".join(g["name"] for g in p["gifts"]))
         if p["coupons"]:
@@ -473,16 +508,50 @@ def format_report(result: Dict[str, Any], request: Dict[str, Any]) -> str:
 
 def main(argv: List[str]) -> int:
     here = os.path.dirname(os.path.abspath(__file__))
-    if len(argv) > 1:
-        base = argv[1]
-    else:
+    args = argv[1:]
+
+    base: Optional[str] = None
+    flags: Dict[str, Any] = {}
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a.startswith("--"):
+            key = a[2:]
+            if "=" in key:
+                k, v = key.split("=", 1)
+                flags[k] = v
+                i += 1
+            elif i + 1 < len(args) and not args[i + 1].startswith("--"):
+                flags[key] = args[i + 1]
+                i += 2
+            else:
+                flags[key] = True
+                i += 1
+        else:
+            if base is None:
+                base = a
+            i += 1
+
+    if base is None:
         base = os.path.join(here, "sample_data")  # 默认样例, 支持从任意目录运行
+
     menu = load_json(os.path.join(base, "menu.json"))
     coupons = load_json(os.path.join(base, "coupons.json"))
     request = load_json(os.path.join(base, "request.json"))
+
+    # 命令行覆盖: --mode delivery|pickup  --fee 9  --budget 30  --max-calories 800
+    if "mode" in flags:
+        request["dining_mode"] = flags["mode"]
+    if "fee" in flags:
+        request["delivery_fee"] = float(flags["fee"])
+    if "budget" in flags:
+        request["budget"] = float(flags["budget"])
+    if "max-calories" in flags:
+        request["max_calories"] = int(flags["max-calories"])
+
     result = optimize(menu, coupons, request)
     print(format_report(result, request))
-    if "--json" in argv:
+    if flags.get("json"):
         print("\n--- JSON ---")
         print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0

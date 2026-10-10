@@ -21,3 +21,9 @@ venv/
 .env
 *.local.json
 mcp.local.json
+
+# 掘金推广文章与转换工具（本地留存，不属于 Skill 交付物）
+docs/juejin-*
+docs/md2juejin.py
+docs/_verify.png
+docs/_shot*.png

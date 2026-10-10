@@ -3,7 +3,8 @@
 """麦门省钱精算师 · 自测用例
 
 运行:  python selftest.py
-覆盖:  组合价券 / 单品券 / 满减 / 赠品 / 预算过滤 / 热量过滤 / 确定性 / 叠加策略
+覆盖:  组合价券 / 单品券 / 满减 / 赠品 / 预算过滤 / 热量过滤 / 确定性 /
+       叠加策略 / 券渠道过滤 / 外送费结算 / 场景影响券可用性
 """
 
 from __future__ import annotations
@@ -11,7 +12,12 @@ from __future__ import annotations
 import copy
 import sys
 
-from optimizer import optimize, price_with_basket, coupon_conflict
+from optimizer import (
+    optimize,
+    price_with_basket,
+    coupon_conflict,
+    filter_coupons_for_mode,
+)
 
 MENU = {
     "store_code": "T",
@@ -97,6 +103,37 @@ def main() -> int:
     a = optimize(MENU, COUPONS, base_req)
     b = optimize(MENU, COUPONS, base_req)
     check("相同输入结果一致", a == b)
+
+    print("== 10. 券渠道过滤 ==")
+    ch_coupons = [
+        {"id": "P1", "type": "threshold", "title": "到店券", "min_spend": 10.0, "discount": 2.0, "stackable": True, "channel": "pickup"},
+        {"id": "D1", "type": "threshold", "title": "外送券", "min_spend": 10.0, "discount": 3.0, "stackable": True, "channel": "delivery"},
+        {"id": "A1", "type": "threshold", "title": "通用券", "min_spend": 10.0, "discount": 1.0, "stackable": True},
+    ]
+    pick = filter_coupons_for_mode(ch_coupons, "pickup")
+    dlv = filter_coupons_for_mode(ch_coupons, "delivery")
+    check("到店场景保留到店券+通用券", {c["id"] for c in pick} == {"P1", "A1"}, str([c["id"] for c in pick]))
+    check("外送场景保留外送券+通用券", {c["id"] for c in dlv} == {"D1", "A1"}, str([c["id"] for c in dlv]))
+
+    print("== 11. 外送费计入总价 ==")
+    req_d = {"wants": ["汉堡", "薯条"], "max_items": 3, "allow_extras": True,
+             "dining_mode": "delivery", "delivery_fee": 6.0}
+    res_d = optimize(copy.deepcopy(MENU), {"coupons": []}, req_d)
+    best_d = res_d["plans"][0]
+    check("总价 = 商品原价 + 外送费", abs(best_d["total"] - (best_d["raw_total"] + 6.0)) < 1e-9, str(best_d))
+    check("结果标记场景与外送费", res_d["dining_mode"] == "delivery" and res_d["delivery_fee"] == 6.0, str(res_d["dining_mode"]))
+
+    print("== 12. 场景影响券可用性 ==")
+    mixed = {"coupons": [
+        {"id": "P9", "type": "item_price", "title": "到店汉堡特价",
+         "item_codes": ["BURGER"], "override_price": 10.0, "stackable": False, "channel": "pickup"},
+    ]}
+    req_p = {"wants": ["汉堡"], "max_items": 2, "allow_extras": False, "dining_mode": "pickup"}
+    req_d2 = {"wants": ["汉堡"], "max_items": 2, "allow_extras": False, "dining_mode": "delivery"}
+    res_p = optimize(copy.deepcopy(MENU), mixed, req_p)
+    res_d2 = optimize(copy.deepcopy(MENU), mixed, req_d2)
+    check("到店场景可用到店券(汉堡 10 元)", res_p["plans"][0]["lines"][0]["price"] == 10.0, str(res_p["plans"][0]["lines"]))
+    check("外送场景排除到店券(汉堡原价 20)", res_d2["plans"][0]["lines"][0]["price"] == 20.0, str(res_d2["plans"][0]["lines"]))
 
     print(f"\n结果: {passed} passed, {failed} failed")
     return 1 if failed else 0

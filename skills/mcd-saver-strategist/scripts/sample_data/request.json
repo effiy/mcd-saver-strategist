@@ -5,5 +5,6 @@
   "max_items": 4,
   "allow_extras": true,
   "dining_mode": "pickup",
+  "delivery_fee": 9.0,
   "note": "用户: 一个人吃, 想要巨无霸+薯条+可乐, 尽量便宜"
 }

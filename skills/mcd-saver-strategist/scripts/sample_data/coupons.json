@@ -35,7 +35,18 @@
       "min_spend": 35.0,
       "discount": 7.0,
       "stackable": true,
+      "channel": "pickup",
       "from": "query-store-coupons"
+    },
+    {
+      "id": "DLV-FULL-40-6",
+      "type": "threshold",
+      "title": "外送 满 40 减 6",
+      "min_spend": 40.0,
+      "discount": 6.0,
+      "stackable": true,
+      "channel": "delivery",
+      "from": "delivery-promotions"
     },
     {
       "id": "MC-SAVE-FULL-25-4",

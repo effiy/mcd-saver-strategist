@@ -16,7 +16,17 @@
 示例：巨无霸 + 中薯条 + 可乐，直选 **¥47.00**；
 用「1+1 随心配」组合后 **¥21.90**，省 **¥25.10（53%）**。
 
-🔎 **效果演示页**：[`docs/demo.html`](docs/demo.html)（浏览器打开即可查看可视化结果）
+🎮 **在线试算（无需登录）**：[`docs/index.html`](docs/index.html) ——
+优化算法的前端完整复刻，选好想吃的、拖动预算和热量上限，实时算出最优组合，打开即玩。
+若已开启 GitHub Pages，可直接访问 `https://hujjun.github.io/mcd-saver-strategist/`。
+
+🔎 静态示例：[`docs/demo.html`](docs/demo.html) ·
+🖼️ 原理图：[`images/how-it-works.png`](images/how-it-works.png) ·
+🎬 宣传动画：[`images/promo.mp4`](images/promo.mp4)
+
+![在线试算页](docs/preview.png)
+
+![原理图](images/how-it-works.png)
 
 ---
 
@@ -58,6 +68,16 @@ flowchart TD
     Q -->|否| P
     C --> R[支付链接]
 ```
+
+---
+
+## 一句话安装
+
+```bash
+git clone https://github.com/hujjun/mcd-saver-strategist.git && cp -r mcd-saver-strategist/skills/mcd-saver-strategist ~/.workbuddy/skills/
+```
+
+（Windows 为 `%USERPROFILE%\.workbuddy\skills\`；MCP Token 配置见下文「安装」。）
 
 ---
 
@@ -121,15 +141,46 @@ cp -r skills/mcd-saver-strategist ~/.workbuddy/skills/
 ```bash
 cd skills/mcd-saver-strategist/scripts
 
-# 看优化结果
+# 看优化结果（默认到店自取场景）
 python optimizer.py
 
 # 同时输出结构化 JSON
 python optimizer.py --json
 
-# 跑 13 项自测（改逻辑后必跑）
+# 外送场景：配送费计入总价，且仅外送可用的券参与优化
+python optimizer.py --mode delivery --fee 9
+
+# 预算 / 热量硬约束
+python optimizer.py --budget 25
+python optimizer.py --max-calories 800
+
+# 跑 19 项自测（改逻辑后必跑）
 python selftest.py
 ```
+
+---
+
+## 真实性对照表
+
+| 项目 | 性质 | 说明 |
+|---|---|---|
+| 优化算法 | ✅ 真实 | `optimizer.py` 与在线试算页为同一套逻辑，结果可用上面命令复现 |
+| 「省 53%」结论 | ✅ 真实 | 算法在示例数据上算出，非人工编排 |
+| 券叠加规则 | ✅ 真实 | 保守策略：`stackable:false` 与任何券互斥，保证方案价 ≤ 实付价 |
+| 菜单价格 / 热量 | 🟡 示例快照 | 结构对齐 MCP 返回，数值为演示用，以门店实时返回为准 |
+| 优惠券内容 | 🟡 示例快照 | 结构对齐 MCP 四路券池归一化结果，可用性以账号实时状态为准 |
+| 下单能力 | ✅ 真实 | 经 MCP 核价（`calculate-price`）→ 下单（`create-order`），本仓库页面不涉及下单 |
+
+---
+
+## 实测发现
+
+开发过程中用真实 MCP 联调得到的观察（2026-10，个人账号实测）：
+
+- **券要四路查全**：`query-my-coupons` 返回的是已入卡包的券；麦麦省的可领券需先 `auto-bind-coupons` 领取才会出现，门店券在 `query-store-coupons`。只查一个来源会漏掉最优组合。
+- **券有场景属性**：实测部分门店券仅到店可用。优化器已支持 `channel` 字段（`pickup` / `delivery` / `any`），外送场景自动剔除不可用券，并把配送费计入总价参与预算判断。
+- **历史订单可能为空**：`order-list` 在账号无历史订单时返回空列表，依赖它做推荐的功能必须有空态兜底。
+- **营养数据可以直接用**：`list-nutrition-foods` 一次返回约 160 款餐品的多维营养数据，热量约束场景无需额外估算。
 
 ---
 
@@ -143,12 +194,18 @@ python selftest.py
 ├── mcp-config.example.json        # 脱敏 MCP 配置（仅环境变量占位符）
 ├── workbuddy.md                   # WorkBuddy 开发对话上下文
 ├── LICENSE                        # MIT
-├── docs/demo.html                 # 效果演示页
+├── docs/
+│   ├── index.html                 # 可交互在线试算（算法的前端复刻，打开即玩）
+│   ├── demo.html                  # 静态示例快照
+│   └── preview.png                # 在线试算页整页截图
+├── images/
+│   ├── how-it-works.svg / .png    # 「省 53% 是怎么算出来的」原理图
+│   └── promo.mp4                  # 宣传动画（AI 生成，仅作视觉物料）
 └── skills/mcd-saver-strategist/   # ← Skill 本体
     ├── SKILL.md                   # 技能指令（Agent 加载）
     ├── scripts/
     │   ├── optimizer.py           # 确定性优惠组合优化器（纯标准库）
-    │   ├── selftest.py            # 13 项自测
+    │   ├── selftest.py            # 19 项自测
     │   └── sample_data/           # 离线示例：菜单/券/请求
     └── references/
         ├── mcp-tools.md           # MCP Tool 清单与字段映射
@@ -170,9 +227,10 @@ python selftest.py
 
 - **确定性优化，不靠大模型口算**：所有金额由 `optimizer.py` 计算或 MCP 返回。
 - **保守的叠加策略**：宁少报优惠，也不给"到店付不出"的假低价。
-- **零依赖**：纯 Python 标准库，WorkBuddy 沙箱可直接运行。
+- **场景感知**：券的 `channel`（到店/外送）过滤 + 外送费计入总价，到店和外送给不同最优解。
+- **零依赖**：纯 Python 标准库，WorkBuddy 沙箱可直接运行；在线试算页同样零依赖、单文件。
 - **可核验闭环**：下单前用 `calculate-price` 复核，方案 = 实付。
-- **13 项自测**：核心逻辑有断言保护，可安全迭代。
+- **19 项自测**：核心逻辑有断言保护，可安全迭代。
 
 ---
 
