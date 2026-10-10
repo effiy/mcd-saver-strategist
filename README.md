@@ -16,9 +16,9 @@
 示例：巨无霸 + 中薯条 + 可乐，直选 **¥47.00**；
 用「1+1 随心配」组合后 **¥21.90**，省 **¥25.10（53%）**。
 
-🎮 **在线试算（无需登录）**：[`docs/index.html`](docs/index.html) ——
+🎮 **在线试算（无需登录）**：<https://hujjun.github.io/mcd-saver-strategist/> ——
 优化算法的前端完整复刻，选好想吃的、拖动预算和热量上限，实时算出最优组合，打开即玩。
-若已开启 GitHub Pages，可直接访问 `https://hujjun.github.io/mcd-saver-strategist/`。
+（若链接打不开，说明 GitHub Pages 尚未开启：仓库 **Settings → Pages → Branch 选 `main` + `/docs` → Save**，约 1 分钟生效。）
 
 🔎 静态示例：[`docs/demo.html`](docs/demo.html) ·
 🖼️ 原理图：[`images/how-it-works.png`](images/how-it-works.png) ·
