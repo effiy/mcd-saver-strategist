@@ -1,8 +1,9 @@
 # 麦门省钱精算师 · mcd-saver-strategist
 
-> 基于 **麦当劳中国 MCP** 开发的省钱点餐 Skill：
+> 基于 **麦当劳中国 MCP（McDonald's China MCP）** 开发的省钱点餐 Skill / AI 智能体技能：
 > 把「菜单 × 优惠券 × 叠加规则」的组合优化交给确定性算法，
 > 让每一顿麦麦都点得明明白白、省得清清楚楚。
+> 又名：麦门省钱精算师 / 麦当劳省钱点餐助手 / MCD Saver Strategist。
 
 麦当劳程序员创意开发大赛参赛作品 · 非麦当劳官方产品。
 
@@ -231,6 +232,20 @@ python selftest.py
 - **零依赖**：纯 Python 标准库，WorkBuddy 沙箱可直接运行；在线试算页同样零依赖、单文件。
 - **可核验闭环**：下单前用 `calculate-price` 复核，方案 = 实付。
 - **19 项自测**：核心逻辑有断言保护，可安全迭代。
+
+---
+
+## 搜索关键词
+
+<details>
+<summary>🔍 想用哪些词能搜到本项目？（点开查看）</summary>
+
+**中文**：麦当劳 · 麦门 · 麦当劳优惠券 · 麦当劳省钱 · 麦当劳点餐 · 麦乐送 / 外送 · 巨无霸 · 1+1 随心配 · 优惠券组合 / 叠加 · 满减 · 组合优化 · 省钱算法 · 麦当劳程序员创意开发大赛 · WorkBuddy 技能 · AI 智能体 · Agent Skill
+
+**English**: McDonald's / McDonalds China / MCD · MCP (Model Context Protocol) · mcd-mcp · coupon optimizer · coupon combination · money saving · fast food deals · deterministic optimization · brute-force search · WorkBuddy skill · AI agent · agent skill · Python
+
+推荐搜索词：`麦当劳 MCP` · `mcd mcp` · `mcdonalds skill` · `优惠券 优化` · `麦门 省钱`
+</details>
 
 ---
 
