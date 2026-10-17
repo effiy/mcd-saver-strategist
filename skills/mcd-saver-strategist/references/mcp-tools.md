@@ -86,6 +86,21 @@ Streamable HTTP 协议，`Authorization: Bearer <MCP_TOKEN>`。
    └─ 用户确认 → calculate-price 核价 → create-order → 支付链接
 ```
 
+## 三点五、连通性自检（mcp_probe.py）
+
+`scripts/mcp_probe.py` 用纯标准库按 MCP 规范（JSON-RPC 2.0 / Streamable HTTP）
+现场验证这条链路是不是真的：initialize 握手 → notifications/initialized →
+tools/list → 可选 tools/call。
+
+```bash
+export MCD_MCP_TOKEN=你的token
+python mcp_probe.py                      # 握手 + 35 个工具清单
+python mcp_probe.py --call now-time-info # 再真调一个工具
+```
+
+退出码：0 成功 / 1 网络或协议错误 / 2 Token 缺失或无效。
+Skill 安装完先跑一遍它，能避免"算法对、数据链路错"的尴尬。
+
 ## 四、错误码与限流
 
 | code | 原因 | 处理 |

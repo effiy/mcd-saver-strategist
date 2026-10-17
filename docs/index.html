@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>麦门省钱精算师 · 在线试算 | mcd-saver-strategist</title>
-<meta name="description" content="基于麦当劳 MCP 的省钱点餐 Skill。选好想吃的，前端确定性算法实时算出最省钱的优惠组合。">
+<meta name="description" content="基于麦当劳 MCP 的省钱点餐 Skill。选好想吃的，前端确定性算法实时算出最省钱的优惠组合，支持多目标选型、多人拼单、券体检与帕累托前沿分析。">
 <style>
 :root{
   --red:#DA291C; --red-d:#b71f14; --gold:#FFC72C; --gold-d:#e0a800;
@@ -129,6 +129,42 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .note{font-size:12.5px;color:var(--sub);margin-top:6px}
 .pool{font-size:12px;color:var(--sub);text-align:center;margin-top:12px}
 
+/* ---------- v2: 目标 / 凑单 / 前沿 / 体检 ---------- */
+.seg.obj{flex-wrap:wrap}
+.seg.obj button{font-size:12.5px;padding:7px 4px}
+.partyrow{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:var(--sub)}
+.partyrow .stp{display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.partyrow button{width:30px;height:30px;border:0;background:#fff;font:inherit;font-size:16px;color:var(--ink2);cursor:pointer}
+.partyrow button:hover{background:#f7f5f1}
+.partyrow .n{width:34px;text-align:center;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.why{font-size:12.5px;color:#8a6100;background:#fff9e8;border:1px solid #f2e0ac;border-radius:9px;padding:8px 11px;margin-bottom:14px}
+.gapcard{background:#f4fbf6;border:1px solid #cfe9d8;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px}
+.gapcard.warn{background:#fff8f2;border-color:#f3dcc6}
+.gapcard .gt{font-weight:750;color:var(--good);font-size:12px;letter-spacing:.04em;margin-bottom:4px}
+.gapcard.warn .gt{color:#b7660a}
+.gapcard .nb{font-size:12.5px;color:var(--sub);margin-top:5px}
+.pchart{background:#fbfaf8;border:1px solid var(--line);border-radius:12px;padding:12px 14px 8px;margin-bottom:14px}
+.pchart .ct{font-size:12px;font-weight:750;color:var(--ink2);margin-bottom:2px}
+.pchart .cs{font-size:11.5px;color:var(--sub);margin-bottom:6px}
+.pchart svg{width:100%;height:auto;display:block;overflow:visible}
+.pchart .ax{font-size:10px;fill:#9a9791}
+.pchart .lb{font-size:10.5px;fill:#4a4843}
+.audit{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.audit summary{padding:11px 14px;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer;display:flex;justify-content:space-between;list-style:none}
+.audit summary::-webkit-details-marker{display:none}
+.audit summary::after{content:"展开 ▾";color:var(--sub);font-weight:500;font-size:11.5px}
+.audit[open] summary::after{content:"收起 ▴"}
+.audit .body{padding:0 14px 12px}
+.arow{padding:8px 0;border-top:1px dashed var(--line);font-size:12.5px}
+.arow .h{display:flex;align-items:center;gap:7px;font-weight:650;color:var(--ink2)}
+.arow .v{font-size:11px;border-radius:5px;padding:1px 6px;background:#f1efeb;color:var(--sub);margin-left:auto;font-weight:600}
+.arow .m{color:var(--sub);font-size:11.5px;margin-top:3px;font-variant-numeric:tabular-nums}
+.arow .r{color:#8a8781;font-size:11.5px;margin-top:2px;line-height:1.5}
+.vt-worth .v{background:#e8f6ee;color:#0a8f4d}
+.vt-trap .v,.vt-invalid .v{background:#fdece9;color:var(--red-d)}
+.vt-suboptimal .v,.vt-marginal .v{background:#fff7e0;color:#8a6100}
+.vt-conditional .v,.vt-useless .v{background:#f1efeb;color:#6b6a67}
+
 /* ---------- how ---------- */
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 @media(max-width:780px){.steps{grid-template-columns:1fr}}
@@ -218,7 +254,8 @@ footer .disc{font-size:12.5px;max-width:560px;line-height:1.7;color:#8f8c86}
     <div class="sec-head">
       <span class="kicker">Interactive</span>
       <h2>在线试算 · 选好想吃的，实时出最优解</h2>
-      <p>下面这个试算器把仓库里的 <code>optimizer.py</code> 完整复刻到了浏览器端，无需登录、无需 Token，打开就能玩。</p>
+      <p>下面这个试算器把仓库里的 <code>optimizer.py</code> 完整复刻到了浏览器端，无需登录、无需 Token，打开就能玩。
+      支持 <b>4 种点餐目标</b>、<b>多人拼单</b>、<b>券体检</b> 和 <b>价格×热量帕累托前沿</b>。</p>
     </div>
 
     <div class="pg">
@@ -237,6 +274,20 @@ footer .disc{font-size:12.5px;max-width:560px;line-height:1.7;color:#8f8c86}
               <button data-mode="delivery">外送</button>
             </div>
             <div class="feeinput" id="feeRow">外送费 <input type="number" id="feeInput" value="9" min="0" max="30" step="1"> 元</div>
+          </div>
+          <div class="field">
+            <div class="flabel">点餐目标 <span class="hint" id="objHint">总价最低</span></div>
+            <div class="seg obj" id="objSeg">
+              <button data-obj="cheapest" class="on">最省钱</button>
+              <button data-obj="balanced">最均衡</button>
+              <button data-obj="lightest">最低卡</button>
+              <button data-obj="fewest">最精简</button>
+            </div>
+            <div class="partyrow">一起拼单
+              <div class="stp">
+                <button id="partyMinus">−</button><span class="n" id="partyNum">1</span><button id="partyPlus">+</button>
+              </div> 人份
+            </div>
           </div>
           <div class="field">
             <div class="flabel">预算上限 <span class="hint" id="budgetLabel">不限</span></div>
@@ -537,7 +588,10 @@ function bestCouponPlan(basket, coupons){
       if (!ok) continue;
       const res = priceWithBasket(basket, combo, byId);
       if (res === null) continue;
-      if (res.total < bestTotal){ bestTotal = res.total; best = res; best.coupon_ids = [...combo]; }
+      // 同价时优先带赠品的组合: 赠品券不涨价, 白得的东西没理由不要
+      const better = res.total < bestTotal - 1e-9 ||
+        (best !== null && Math.abs(res.total - bestTotal) < 1e-9 && res.gifts.length > best.gifts.length);
+      if (better){ bestTotal = res.total; best = res; best.coupon_ids = [...combo]; }
     }
   }
   if (best === null){ best = priceWithBasket(basket, [], byId); best.coupon_ids = []; }
@@ -577,15 +631,216 @@ function buildBaskets(request, items){
   }
   return out;
 }
+/* ---------- v2: 多目标 / 帕累托 / 凑单 / 券体检 ---------- */
+const OBJECTIVES = ["cheapest","balanced","lightest","fewest"];
+const PRICE_SLACK = {balanced:1.15, lightest:1.30, fewest:1.10};
+
+function baselineBasket(wants, items){
+  const out = [], used = new Set();
+  for (const w of wants){
+    for (const cand of matchWant(w, items)){
+      if (!used.has(cand.code)){ out.push(cand); used.add(cand.code); break; }
+    }
+  }
+  return out;
+}
+function paretoFrontier(plans, limit){
+  limit = limit || 8;
+  const uniq = new Map();
+  for (const p of plans){
+    const k = round2(p.total) + "@" + p.calories;
+    if (!uniq.has(k)) uniq.set(k, p);
+  }
+  const pts = [...uniq.values()].sort((a,b) => a.total - b.total || a.calories - b.calories);
+  const front = []; let bestCal = Infinity;
+  for (const p of pts){
+    if (p.calories < bestCal){ front.push(p); bestCal = p.calories; }
+  }
+  return front.slice(0, limit);
+}
+function pickPlans(plans, objective, limit){
+  if (!plans.length) return [];
+  if (!OBJECTIVES.includes(objective)) objective = "cheapest";
+  const cheapest = Math.min(...plans.map(p => p.total));
+  if (objective === "cheapest"){
+    return [...plans].sort((a,b) => a.total - b.total || a.calories - b.calories || a.item_count - b.item_count).slice(0, limit);
+  }
+  const cap = cheapest * (PRICE_SLACK[objective] || 1);
+  let pool = plans.filter(p => p.total <= cap + 1e-9);
+  if (!pool.length) pool = [...plans];
+  const cmp = {
+    balanced: (a,b) => b.wants_fulfilled - a.wants_fulfilled || a.item_count - b.item_count || a.total - b.total || a.calories - b.calories,
+    lightest: (a,b) => a.calories - b.calories || a.total - b.total,
+    fewest:   (a,b) => a.item_count - b.item_count || a.total - b.total || a.calories - b.calories
+  }[objective];
+  return pool.sort(cmp).slice(0, limit);
+}
+/* 最小代价凑单: 找一个子集, 使总价 >= gap 且尽量小 */
+function cheapestFiller(items, gap){
+  gap = round2(gap);
+  if (gap <= 0) return null;
+  const prices = items.filter(it => it.price > 0).map(it => [it, round2(it.price)]);
+  if (!prices.length) return null;
+  const cap = Math.min(gap + Math.max(...prices.map(x => x[1])), 200);
+  const reach = new Map(); reach.set(0, null);
+  for (const [it, pr] of prices){
+    const add = new Map();
+    for (const s of [...reach.keys()]){
+      const ns = round2(s + pr);
+      if (ns <= cap + 1e-9 && !reach.has(ns) && !add.has(ns)) add.set(ns, [s, it]);
+    }
+    for (const [k, v] of add) reach.set(k, v);
+  }
+  let target = Infinity;
+  for (const s of reach.keys()) if (s >= gap - 1e-9 && s < target) target = s;
+  if (!isFinite(target)) return { items:[], cost:null };
+  const picked = []; let cur = target;
+  while (reach.get(cur)){ const [prev, it] = reach.get(cur); picked.push(it); cur = prev; }
+  return { items: picked, cost: round2(target) };
+}
+function suggestGap(plan, menu, couponsPayload, request){
+  request = request || {};
+  const items = menu.items;
+  const mode = (request.dining_mode || "pickup").toLowerCase();
+  const coupons = filterCouponsForMode(couponsPayload.coupons || [], mode);
+  const byId = {}; coupons.forEach(c => byId[c.id] = c);
+  const applied = new Set((plan.coupons || []).map(c => c.id));
+  const appliedCps = [...applied].filter(id => byId[id]).map(id => byId[id]);
+  const conflicts = c => appliedCps.some(a => couponConflict(c, a));
+  const subtotal = round2(plan.subtotal || 0);
+  const inBasket = new Set((plan.items || []).map(it => it.code).concat((plan.gifts || []).map(g => g.code)));
+  const out = { threshold:null, gift:null };
+
+  let nextTh = null;
+  for (const c of coupons){
+    if (c.type !== "threshold" || applied.has(c.id) || conflicts(c)) continue;
+    const gap = round2(c.min_spend - subtotal);
+    if (gap <= 0) continue;
+    if (!nextTh || gap < nextTh.gap) nextTh = { c, gap };
+  }
+  if (nextTh){
+    const pool = items.filter(it => !inBasket.has(it.code));
+    const pick = cheapestFiller(pool, nextTh.gap);
+    const extra = round2(nextTh.c.discount - (plan.threshold_discount || 0));
+    if (pick && pick.cost != null){
+      const net = round2(pick.cost - extra);
+      out.threshold = {
+        coupon_id: nextTh.c.id, title: nextTh.c.title, gap: nextTh.gap,
+        fillers: pick.items.map(it => ({code:it.code, name:it.name, price:it.price})),
+        filler_cost: pick.cost, extra_discount: extra, net_change: net,
+        verdict: net < 0 ? "worth" : (net === 0 ? "even" : "costly"),
+        text: `还差 ${fmt(nextTh.gap)} 到「${nextTh.c.title}」，最省的补位是 ` +
+              pick.items.map(it => `${it.name}(${fmt(it.price)})`).join("、") +
+              `，合计 ${fmt(pick.cost)}；多减 ${fmt(extra)}，` +
+              (net < 0 ? `净省 ${fmt(-net)}` : (net === 0 ? `花的钱一分不涨，等于白得一份 ${pick.items[0].name}` : `净多花 ${fmt(net)}`))
+      };
+    }
+  }
+  for (const c of coupons){
+    if (c.type !== "free_gift" || applied.has(c.id) || conflicts(c)) continue;
+    const gap = round2((c.min_spend || 0) - subtotal);
+    if (gap <= 0) continue;
+    const giftValue = round2((c.gift_codes || []).filter(g => byId[g] || items.find(i=>i.code===g))
+      .reduce((s,g) => s + ((items.find(i=>i.code===g)||{}).price||0), 0));
+    const pool = items.filter(it => !inBasket.has(it.code));
+    const pick = cheapestFiller(pool, gap);
+    if (!pick || pick.cost == null) continue;
+    const net = round2(pick.cost - giftValue);
+    out.gift = { coupon_id:c.id, title:c.title, gap, filler_cost:pick.cost, gift_value:giftValue,
+                 net_change:net, verdict: net < 0 ? "worth" : (net === 0 ? "even" : "costly"),
+                 text: `再买 ${fmt(gap)} 可送赠品(估值 ${fmt(giftValue)})，最省补位合计 ${fmt(pick.cost)}，` +
+                       (net < 0 ? `净省 ${fmt(-net)}` : `净多花 ${fmt(net)}`) };
+    break;
+  }
+  return out;
+}
+function nominalValue(cp, byCode){
+  const ps = codes => (codes || []).filter(c => byCode[c]).map(c => byCode[c].price);
+  if (cp.type === "item_price"){ const p = ps(cp.item_codes); return p.length ? round2(Math.max(...p) - cp.override_price) : 0; }
+  if (cp.type === "percent"){ const p = ps(cp.item_codes); return p.length ? round2(Math.max(...p) * (1 - cp.discount_pct)) : 0; }
+  if (cp.type === "threshold") return round2(cp.discount || 0);
+  if (cp.type === "bundle_price"){
+    let s = 0;
+    for (const g of cp.groups || []){ const p = ps(g); if (p.length) s += Math.max(...p); }
+    return round2(s - cp.price);
+  }
+  if (cp.type === "free_gift") return round2(ps(cp.gift_codes).reduce((a,b) => a+b, 0));
+  return 0;
+}
+function auditCoupons(menu, couponsPayload, request){
+  request = request || {};
+  const items = menu.items;
+  const byCode = {}; items.forEach(it => byCode[it.code] = it);
+  const mode = (request.dining_mode || "pickup").toLowerCase();
+  const coupons = filterCouponsForMode(couponsPayload.coupons || [], mode);
+  const byId = {}; coupons.forEach(c => byId[c.id] = c);
+  const baseBasket = baselineBasket(request.wants || [], items);
+  const baseTotal = round2(baseBasket.reduce((s,it) => s + it.price, 0));
+  const globalBest = optimize(menu, couponsPayload, request);
+  const bestPlan = globalBest.plans[0] || null;
+  const bestIds = new Set(((bestPlan && bestPlan.coupons) || []).map(c => c.id));
+  const bestTotal = bestPlan ? round2(bestPlan.total) : null;
+  const soloReq = Object.assign({}, request, {allow_extras:true});
+  delete soloReq.budget; delete soloReq.max_calories; delete soloReq.objective; delete soloReq.party_size;
+
+  const rows = [];
+  for (const c of coupons){
+    const nominal = nominalValue(c, byCode);
+    const isGift = c.type === "free_gift";
+    let onBaseline = null;
+    if (baseBasket.length){
+      const r0 = priceWithBasket(baseBasket, [c.id], byId);
+      if (r0 !== null){
+        const bonus = (isGift && r0.gifts.length) ? nominal : 0;
+        onBaseline = round2(baseTotal - r0.total + bonus);
+      }
+    }
+    const solo = optimize(menu, {coupons:[c]}, soloReq);
+    const sp = solo.plans[0] || null;
+    let realSaving = null;
+    if (sp){ const bonus = (isGift && sp.gifts.length) ? nominal : 0; realSaving = round2(baseTotal - sp.total + bonus); }
+    const opp = (sp && bestTotal != null) ? round2(sp.total - bestTotal) : null;
+    let watered = false;
+    if (c.type === "item_price"){
+      const p = (c.item_codes || []).filter(x => byCode[x]).map(x => byCode[x].price);
+      watered = p.length > 0 && c.override_price >= Math.max(...p) - 1e-9;
+    } else if (c.type === "percent"){ watered = (c.discount_pct || 1) >= 1; }
+
+    let verdict, reason;
+    if (watered){ verdict = "invalid"; reason = "券面价不低于原价，等于没有优惠"; }
+    else if (onBaseline === null){ verdict = "conditional"; reason = "直选清单里没有适用商品，需要先加购才用得上"; }
+    else if (onBaseline <= 0.01 && (realSaving || 0) <= 0.01){ verdict = "useless"; reason = "在当前点单下省不到钱"; }
+    else if (opp != null && opp > 0.01){
+      if (nominal && opp > nominal){
+        verdict = "trap"; reason = `名义省 ${nominal.toFixed(2)} 元，但用了它会比最优组合多花 ${opp.toFixed(2)} 元`;
+      } else {
+        verdict = "suboptimal"; reason = `能省 ${onBaseline.toFixed(2)} 元，但还有更好的组合(多花 ${opp.toFixed(2)} 元)`;
+      }
+    }
+    else if (onBaseline < 2){ verdict = "marginal"; reason = `只能省 ${onBaseline.toFixed(2)} 元，聊胜于无`; }
+    else { verdict = "worth"; reason = `不动点单内容就能省 ${onBaseline.toFixed(2)} 元`; }
+
+    rows.push({ id:c.id, title:c.title || c.id, type:c.type, nominal, on_baseline:onBaseline,
+                real_saving:realSaving, opportunity_cost:opp, verdict, reason,
+                in_optimal: bestIds.has(c.id) });
+  }
+  const rank = {worth:0, marginal:1, suboptimal:2, trap:3, conditional:4, useless:5, invalid:6};
+  rows.sort((a,b) => (rank[a.verdict] - rank[b.verdict]) ||
+                       ((b.real_saving ?? -999) - (a.real_saving ?? -999)));
+  return rows;
+}
+
 function optimize(menu, couponsPayload, request){
   const items = menu.items;
   const mode = (request.dining_mode || "pickup").toLowerCase();
   const coupons = filterCouponsForMode(couponsPayload.coupons || [], mode);
   const fee = mode === "delivery" ? Number(request.delivery_fee || 0) : 0;
   const idx = {}; items.forEach(it => idx[it.code] = it);
+  const wants = request.wants || [];
+  const objective = OBJECTIVES.includes(request.objective) ? request.objective : "cheapest";
+  const party = Math.max(1, parseInt(request.party_size || 1, 10) || 1);
 
-  const baseline = [];
-  (request.wants || []).forEach(w => { const c = matchWant(w, items); if (c.length) baseline.push(c[0]); });
+  const baseline = baselineBasket(wants, items);
   const baselineTotal = round2(baseline.reduce((s,it) => s + it.price, 0));
 
   const plans = [], seen = new Set();
@@ -594,28 +849,59 @@ function optimize(menu, couponsPayload, request){
     const res = bestCouponPlan(basket, coupons);
     let cal = basket.reduce((s,it) => s + (it.calories || 0), 0);
     (res.gifts || []).forEach(g => { if (idx[g]) cal += idx[g].calories || 0; });
-    const total = round2(res.total + fee);
+
+    const raw = round2(basket.reduce((s,it) => s + it.price, 0));
+    const unitTotal = round2(res.total + fee);
+    const saving = round2(raw - res.total);
+    const total = party > 1 ? round2(raw * party - saving + fee) : unitTotal;
+
     if (request.budget != null && total > request.budget) continue;
     if (request.max_calories != null && cal > request.max_calories) continue;
     const key = codes + "@" + total;
     if (seen.has(key)) continue;
     seen.add(key);
-    const raw = round2(basket.reduce((s,it) => s + it.price, 0));
-    const saving = round2(raw - res.total);
+
     plans.push({
+      items: basket.map(it => ({code:it.code, name:it.name})),
       lines: res.lines,
       gifts: (res.gifts || []).filter(g => idx[g]).map(g => ({code:g, name:idx[g].name})),
       coupons: (res.coupon_ids || []).map(cid => ({id:cid, title:(coupons.find(c => c.id === cid) || {}).title || cid})),
+      subtotal: res.subtotal,
       threshold_discount: res.threshold_discount || 0,
       delivery_fee: round2(fee),
-      total, raw_total: raw, coupon_saving: saving,
-      saving_pct: raw ? saving / raw : 0, calories: cal
+      total, unit_total: unitTotal, party_size: party,
+      per_person: round2(total / party),
+      raw_total: raw, coupon_saving: saving,
+      saving_pct: raw ? saving / raw : 0, calories: cal,
+      item_count: basket.length,
+      wants_fulfilled: wants.filter(w => matchWant(w, basket).length > 0).length,
+      wants_total: wants.length
     });
   }
-  plans.sort((a,b) => a.total - b.total || a.calories - b.calories);
-  return { dining_mode: mode, delivery_fee: round2(fee),
+
+  const ranked = pickPlans(plans, objective, 5);
+  const absCheapest = pickPlans(plans, "cheapest", 1);
+  let reason = "";
+  if (ranked.length && absCheapest.length){
+    const ch = ranked[0], c0 = absCheapest[0], d = round2(ch.total - c0.total);
+    if (objective === "cheapest") reason = "按「到手价最低」选出";
+    else if (d <= 0 && ch.calories === c0.calories && ch.item_count === c0.item_count && ch.wants_fulfilled === c0.wants_fulfilled)
+      reason = "本次最优解同时满足省钱与这个目标，没有取舍";
+    else {
+      const gain = objective === "lightest" ? (c0.calories - ch.calories)
+                 : objective === "fewest" ? (c0.item_count - ch.item_count)
+                 : (ch.wants_fulfilled - c0.wants_fulfilled);
+      const unit = objective === "lightest" ? `热量少 ${gain} kcal` : objective === "fewest" ? `少 ${gain} 件` : `想吃的覆盖 ${ch.wants_fulfilled}/${ch.wants_total}`;
+      reason = (d <= 0 ? "与最低价方案等价" : `比最低价方案多花 ${fmt(d)}`) + `，${unit}`;
+    }
+  }
+
+  return { dining_mode: mode, delivery_fee: round2(fee), objective, party_size: party,
+           objective_reason: reason,
            baseline:{ items: baseline.map(it => it.name), total: baselineTotal },
-           plans: plans.slice(0,5), plan_pool_size: plans.length };
+           plans: ranked, plan_pool_size: plans.length,
+           pareto: paretoFrontier(plans),
+           gap: ranked.length ? suggestGap(ranked[0], menu, couponsPayload, request) : {threshold:null, gift:null} };
 }
 
 /* ============================================================
@@ -626,7 +912,9 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 const sym = "¥";
 const fmt = n => sym + n.toFixed(2);
 
-const state = { wants: ["巨无霸","中薯条","可口可乐 中杯"], mode:"pickup", fee:9, budget:0, cal:0 };
+const state = { wants: ["巨无霸","中薯条","可口可乐 中杯"], mode:"pickup", fee:9, budget:0, cal:0,
+                objective:"cheapest", party:1 };
+const OBJ_HINT = {cheapest:"总价最低", balanced:"吃全 + 件数少", lightest:"热量最低", fewest:"件数最少"};
 
 function renderMenuChips(){
   const cats = {};
@@ -665,11 +953,72 @@ function planCard(p, idx){
   p.coupons.forEach(c => badges += `<span class="badge c">🎟️ ${esc(c.title)}</span>`);
   p.gifts.forEach(g => badges += `<span class="badge g">🎁 ${esc(g.name)}</span>`);
   badges += `<span class="badge k">约 ${p.calories} kcal</span>`;
+  if (p.party_size > 1) badges += `<span class="badge k">人均 ${fmt(p.per_person)}</span>`;
   badges += `<span class="badge">省 ${fmt(p.coupon_saving)} · ${Math.round(p.saving_pct*100)}%</span>`;
   return `<div class="plan${idx===0?" top":""}">
     <div class="phead"><span class="medal">${medals[idx]}</span><span class="pt">方案 ${idx+1}</span>
       <span class="ptotal">${fmt(p.total)}<span class="o">原价 ${fmt(p.raw_total)}</span></span></div>
     ${lines}<div class="chipsl">${badges}</div></div>`;
+}
+
+function paretoSVG(front){
+  if (!front || !front.length) return "";
+  const W = 520, H = 196, L = 56, R = 22, T = 22, B = 36;
+  const xs = front.map(p => p.total), ys = front.map(p => p.calories);
+  let xmin = Math.min(...xs), xmax = Math.max(...xs);
+  let ymin = Math.min(...ys), ymax = Math.max(...ys);
+  if (xmax - xmin < 1){ xmin -= 3; xmax += 3; }
+  if (ymax - ymin < 1){ ymin -= 60; ymax += 60; }
+  const px = v => L + (v - xmin) / (xmax - xmin) * (W - L - R);
+  const py = v => T + (ymax - v) / (ymax - ymin) * (H - T - B);
+  let g = "";
+  for (let i = 0; i <= 3; i++){
+    const y = T + i * (H - T - B) / 3;
+    g += `<line x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}" stroke="#eae8e4" stroke-width="1"/>`;
+  }
+  g += `<text class="ax" x="${L}" y="${H-14}">${fmt(xmin)}</text>`;
+  g += `<text class="ax" x="${W-R}" y="${H-14}" text-anchor="end">${fmt(xmax)}</text>`;
+  g += `<text class="ax" x="${L-8}" y="${py(ymax)+4}" text-anchor="end">${ymax} kcal</text>`;
+  g += `<text class="ax" x="${L-8}" y="${py(ymin)+4}" text-anchor="end">${ymin} kcal</text>`;
+  const pts = [...front].sort((a,b) => a.total - b.total);
+  if (pts.length > 1){
+    const d = pts.map((p,i) => `${i ? "L" : "M"}${px(p.total).toFixed(1)},${py(p.calories).toFixed(1)}`).join(" ");
+    g += `<path d="${d}" fill="none" stroke="#FFC72C" stroke-width="2" stroke-dasharray="5 3"/>`;
+  }
+  pts.forEach((p,i) => {
+    const x = px(p.total), y = py(p.calories);
+    const anchor = i === 0 ? "start" : (i === pts.length - 1 ? "end" : "middle");
+    g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="#DA291C" stroke="#fff" stroke-width="2"/>`;
+    g += `<text class="lb" x="${x.toFixed(1)}" y="${(y-9).toFixed(1)}" text-anchor="${anchor}">${fmt(p.total)} · ${p.calories}kcal</text>`;
+  });
+  const one = pts.length === 1;
+  return `<div class="pchart"><div class="ct">价格 × 热量 · 帕累托前沿</div>
+    <div class="cs">${one ? "本次需求下最低价方案同时也是最低卡，没有取舍空间。"
+      : "前沿上的每个点都无法被「更便宜且热量不更高」的方案替代 —— 想更省，就得多吃热量。"}</div>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="价格与热量的帕累托前沿">${g}</svg></div>`;
+}
+
+function renderAudit(rows){
+  if (!rows || !rows.length) return "";
+  const label = {worth:"值得用", marginal:"聊胜于无", suboptimal:"不是最优", trap:"陷阱",
+                 conditional:"需加购", useless:"用不上", invalid:"注水券"};
+  const body = rows.map(r => {
+    const parts = [];
+    if (r.nominal) parts.push(`名义 ${fmt(r.nominal)}`);
+    if (r.real_saving != null) parts.push(`实际省 ${fmt(r.real_saving)}`);
+    if (r.opportunity_cost != null && r.opportunity_cost > 0.01) parts.push(`机会成本 ${fmt(r.opportunity_cost)}`);
+    return `<div class="arow vt-${r.verdict}">
+      <div class="h">${esc(r.title)}<span class="v">${label[r.verdict] || r.verdict}</span></div>
+      <div class="m">${parts.join(" · ")}${r.in_optimal ? " · ★在最优解里" : ""}</div>
+      <div class="r">${esc(r.reason)}</div></div>`;
+  }).join("");
+  return `<details class="audit"><summary>券体检 · 这 ${rows.length} 张券到底值多少钱</summary>
+    <div class="body">${body}
+      <div style="font-size:11.5px;color:#8a8781;margin-top:9px;line-height:1.6">
+        「名义」是券上写的大字，「实际省」是真的能省的钱，
+        「机会成本」是用了它就吃不到更好组合的代价 —— 三者差距越大，券的水分越大。
+      </div>
+    </div></details>`;
 }
 
 function render(){
@@ -681,7 +1030,9 @@ function render(){
     dining_mode: state.mode,
     delivery_fee: state.fee,
     budget: state.budget > 0 ? state.budget : null,
-    max_calories: state.cal > 0 ? state.cal : null
+    max_calories: state.cal > 0 ? state.cal : null,
+    objective: state.objective,
+    party_size: state.party
   };
   const res = optimize(MENU, COUPONS, req);
   const box = $("#result");
@@ -692,15 +1043,33 @@ function render(){
   }
   const best = res.plans[0];
   const modeCn = res.dining_mode === "delivery" ? "外送" : "到店自取";
+  const partyTag = res.party_size > 1 ? ` · ${res.party_size} 人份` : "";
   const saved = round2(res.baseline.total - best.total);
 
   let html = `<div class="result-sum">
-    <div class="rs old"><div class="k">直选（不用券）· ${esc(modeCn)}</div><div class="v">${fmt(res.baseline.total)}</div></div>
+    <div class="rs old"><div class="k">直选（不用券）· ${esc(modeCn)}${partyTag}</div><div class="v">${fmt(res.baseline.total)}</div></div>
     <div class="rs new"><div class="k">精算师最优解</div><div class="v">${fmt(best.total)}</div>
       <span class="save">省 ${fmt(best.coupon_saving)} · ${Math.round(best.saving_pct*100)}% OFF</span></div>
   </div>`;
   if (saved > 0) html += `<div class="note">比「直接按想吃的点」还少花 <b>${fmt(saved)}</b>${res.dining_mode==="delivery"?"（已含外送费）":""}。</div>`;
+  if (res.party_size > 1) html += `<div class="note">${res.party_size} 人拼单：商品按份数计，优惠只计一次（保守），人均 <b>${fmt(best.per_person)}</b>。</div>`;
+  if (res.objective !== "cheapest" && res.objective_reason) html += `<div class="why">目标「${OBJ_HINT[res.objective]}」：${esc(res.objective_reason)}</div>`;
+
   html += res.plans.map((p,i) => planCard(p,i)).join("");
+
+  const g = res.gap && (res.gap.threshold || res.gap.gift);
+  if (g){
+    const it = res.gap.threshold || res.gap.gift;
+    const warn = it.verdict === "costly";
+    html += `<div class="gapcard${warn ? " warn" : ""}">
+      <div class="gt">${warn ? "凑单提示" : "凑单可省"}</div>
+      <div>${esc(it.text)}</div>
+      <div class="nb">${warn ? "为凑门槛多买的东西是自己掏钱买的，别被门槛牵着走。" : "净变化为负/零：加购的钱不超过多减的钱。"}</div>
+    </div>`;
+  }
+
+  html += paretoSVG(res.pareto);
+  html += renderAudit(auditCoupons(MENU, COUPONS, req));
   html += `<div class="pool">共评估 ${res.plan_pool_size} 个可行方案，展示前 ${res.plans.length} 名 · 金额由前端确定性算法计算，非大模型口算</div>`;
   box.innerHTML = html;
 }
@@ -717,6 +1086,21 @@ function updateHero(){
 }
 
 function bind(){
+  $("#objSeg").querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.objective = btn.dataset.obj;
+      $("#objSeg").querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+      $("#objHint").textContent = OBJ_HINT[state.objective] || "";
+      render();
+    });
+  });
+  const setParty = n => {
+    state.party = Math.max(1, Math.min(6, n));
+    $("#partyNum").textContent = state.party;
+    render();
+  };
+  $("#partyMinus").addEventListener("click", () => setParty(state.party - 1));
+  $("#partyPlus").addEventListener("click", () => setParty(state.party + 1));
   $("#modeSeg").querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
       state.mode = btn.dataset.mode;
@@ -739,6 +1123,10 @@ function bind(){
   $("#resetBtn").addEventListener("click", () => {
     state.wants = ["巨无霸","中薯条","可口可乐 中杯"];
     state.mode = "pickup"; state.fee = 9; state.budget = 0; state.cal = 0;
+    state.objective = "cheapest"; state.party = 1;
+    $("#objSeg").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.obj === "cheapest"));
+    $("#objHint").textContent = "总价最低";
+    $("#partyNum").textContent = "1";
     $("#modeSeg").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.mode === "pickup"));
     $("#feeRow").classList.remove("show");
     $("#budget").value = 0; $("#budgetLabel").textContent = "不限";

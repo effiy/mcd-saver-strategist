@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 单元与端到端断言 (46 项)
+        run: python skills/mcd-saver-strategist/scripts/selftest.py
+
+      - name: 场景演示可跑通
+        run: python skills/mcd-saver-strategist/scripts/demo.py
+
+      - name: 性能基准 (快速档)
+        run: python skills/mcd-saver-strategist/scripts/bench.py --quick
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 前后端对拍 (页面引擎 = optimizer.py)
+        run: node skills/mcd-saver-strategist/scripts/parity_check.mjs

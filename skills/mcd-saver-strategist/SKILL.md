@@ -15,7 +15,8 @@ agent_created: true
 本 Skill 的分工非常明确：
 
 - **MCP 负责「取数」**：菜单、价格、优惠券、营养、门店。
-- **`scripts/optimizer.py` 负责「算」**：在组合空间里穷举，给出确定性最优解。
+- **`scripts/optimizer.py` 负责「算」**：在组合空间里穷举，给出确定性最优解，
+  并回答四个衍生问题——多目标选型、券体检、凑单建议、帕累托前沿。
 - **你（Agent）负责「说」和「做」**：把结果讲成人话、给出推荐、经用户确认后下单。
 
 > 核心纪律：**永远不要自己口算价格或用券组合**。所有金额必须来自
@@ -35,11 +36,13 @@ agent_created: true
 
 ### 第 0 步：确认前提（缺一不可）
 
-开始前必须明确三件事，缺哪个就向用户问哪个：
+开始前必须明确这几件事，缺哪个就向用户问哪个：
 
 1. **就餐方式**：外送到家 / 到店取餐 / 堂食外带（决定用 `delivery-*` 还是 `query-nearby-stores`）。
 2. **位置或门店**：外送需要配送地址，到店需要哪个门店。
 3. **想吃的东西 / 约束**：想吃什么（可模糊）、预算上限、热量上限、几人吃。
+4. **点餐目标**（可选）：默认「最省钱」；用户在意"吃全一点""低卡""少点几件"时，
+   分别用 `objective: balanced / lightest / fewest`。不用反复追问，按语气判断即可。
 
 ### 第 1 步：通过 MCP 取数
 
@@ -68,7 +71,9 @@ agent_created: true
 tmp/menu.json     # {store_code, currency, items:[{code,name,category,price,calories,tags}]}
 tmp/coupons.json  # {coupons:[...]}  见 references/coupon-strategy.md 的券类型定义
 tmp/request.json  # {wants, budget, max_calories, max_items, allow_extras,
-                  #  dining_mode:"pickup"|"delivery", delivery_fee(外送时必填)}
+                  #  dining_mode:"pickup"|"delivery", delivery_fee(外送时必填),
+                  #  objective:"cheapest"|"balanced"|"lightest"|"fewest",
+                  #  party_size: 人数(默认 1)}
 ```
 
 券的场景字段：能判断「仅到店 / 仅外送可用」的券，标注 `"channel":"pickup"` 或 `"delivery"`，
@@ -81,13 +86,35 @@ python scripts/optimizer.py <临时目录>
 ```
 
 - 加 `--json` 可同时输出结构化 JSON，便于你读取字段。
+- 加 `--audit` 额外输出券体检（每张券的名义面额 / 实际节省 / 机会成本）。
 - 想看内置样例：`python scripts/optimizer.py sample_data`
-- 改完逻辑务必跑 `python scripts/selftest.py`（19 项断言应全绿）。
+- 一键看 7 个真实场景：`python scripts/demo.py`
+- 改完逻辑务必跑 `python scripts/selftest.py`（46 项断言应全绿）。
+
+**优化器返回里值得讲给用户的三块**（都在 JSON 里）：
+
+- `objective_reason` —— 为什么选这个方案（多目标时必讲）。
+- `gap` —— 凑单建议：差几元到下一档、补位商品、净变化。
+  `net_change < 0` 意味着"加购反而更省"，`verdict=costly` 意味着"别为凑门槛多花钱"，都要如实说。
+- `pareto` —— 价格 × 热量的不可支配解集。用户纠结"便宜还是低卡"时，把这条边界摊给他看。
+
+### 第 2.5 步：券体检（券多时强烈建议）
+
+用户手里券多、或纠结用哪张时，跑 `audit_coupons()`（CLI: `--audit`），它会回答：
+
+- **名义面额** vs **实际节省** —— 差距就是营销水分（兑现率）。
+- **机会成本** —— 只用这张券会比全局最优多花多少。最贵的坑不是"假券"，
+  而是"小券挤掉大组合"：每张券单看都在省钱，用了它反而吃不到 1+1 随心配。
+- 判定分级：`worth`（值得用）> `marginal`（聊胜于无）> `suboptimal`（不是最优）
+  > `trap`（陷阱）> `conditional`（需先加购）> `useless` / `invalid`。
+
+把 `worth` 和 `trap` 讲清楚就够了，不要把 8 张券全部念一遍。
 
 ### 第 3 步：把结果讲给用户
 
 - 默认展示 **Top 3** 方案，用「到手价」而不是「原价」开头。
 - 每个方案说明：**省了多少钱 / 折算几折 / 用了哪张券 / 关键约束（预算、热量）是否满足**。
+- 多人拼单时报**总价和人均**，并说明"优惠只计一次（保守），到店实际可能更便宜"。
 - 如果最优方案为了用券而**加购**了东西（`notes` 里会提示），要显式告诉用户：
   "为了用满 35 减 7，多加了 X，但总价反而更低" —— 让用户自己判断值不值。
 - 用中文、口语化，不要罗列 JSON。金额保留两位小数。
@@ -114,8 +141,12 @@ python scripts/optimizer.py <临时目录>
 
 ## 资源索引
 
-- [`scripts/optimizer.py`](scripts/optimizer.py) —— 确定性优惠组合优化器（纯标准库）。
-- [`scripts/selftest.py`](scripts/selftest.py) —— 19 项自测，改动逻辑后必跑。
+- [`scripts/optimizer.py`](scripts/optimizer.py) —— 确定性优惠组合优化器 v2（多目标 / 券体检 / 凑单 / 帕累托 / 拼单，纯标准库）。
+- [`scripts/selftest.py`](scripts/selftest.py) —— 46 项自测，改动逻辑后必跑。
+- [`scripts/demo.py`](scripts/demo.py) —— 7 个真实场景一键演示（离线可跑）。
+- [`scripts/bench.py`](scripts/bench.py) —— 性能基准：菜品 10~160 款规模下的耗时。
+- [`scripts/mcp_probe.py`](scripts/mcp_probe.py) —— MCP 连通自检：握手 / 工具清单 / 试调用。
+- [`scripts/parity_check.mjs`](scripts/parity_check.mjs) —— 前后端对拍（需 Node）。
 - [`scripts/sample_data/`](scripts/sample_data/) —— 可离线跑通的示例菜单/券/请求。
 - [`references/mcp-tools.md`](references/mcp-tools.md) —— 用到的 MCP Tool 清单与字段映射表。
-- [`references/coupon-strategy.md`](references/coupon-strategy.md) —— 5 类优惠券建模、叠加与互斥规则、省钱策略。
+- [`references/coupon-strategy.md`](references/coupon-strategy.md) —— 5 类优惠券建模、叠加与互斥规则、券体检与省钱策略。
