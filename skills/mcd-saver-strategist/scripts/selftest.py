@@ -189,8 +189,8 @@ def main() -> int:
                          {"wants": ["汉堡", "薯条"], "max_items": 3, "allow_extras": True})
     fake = next(r for r in rows if r["id"] == "FAKE")
     gift = next(r for r in rows if r["id"] == "G1")
-    check("注水券被判为 invalid", fake["verdict"] == "invalid", str(fake))
-    check("注水券真实节省 <= 0", (fake["real_saving"] or 0) <= 0.01, str(fake["real_saving"]))
+    check("无效券被判为 invalid", fake["verdict"] == "invalid", str(fake))
+    check("无效券真实节省 <= 0", (fake["real_saving"] or 0) <= 0.01, str(fake["real_saving"]))
     check("赠品券按赠品价值计算节省(派 7 元)", gift["real_saving"] == 7.0, str(gift["real_saving"]))
     check("体检结果带兑现率字段", "effective_rate" in gift)
 

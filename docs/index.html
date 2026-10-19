@@ -1000,8 +1000,8 @@ function paretoSVG(front){
 
 function renderAudit(rows){
   if (!rows || !rows.length) return "";
-  const label = {worth:"值得用", marginal:"聊胜于无", suboptimal:"不是最优", trap:"陷阱",
-                 conditional:"需加购", useless:"用不上", invalid:"注水券"};
+  const label = {worth:"值得用", marginal:"聊胜于无", suboptimal:"不是最优", trap:"机会成本高",
+                 conditional:"需加购", useless:"用不上", invalid:"不产生优惠"};
   const body = rows.map(r => {
     const parts = [];
     if (r.nominal) parts.push(`名义 ${fmt(r.nominal)}`);
@@ -1016,7 +1016,7 @@ function renderAudit(rows){
     <div class="body">${body}
       <div style="font-size:11.5px;color:#8a8781;margin-top:9px;line-height:1.6">
         「名义」是券上写的大字，「实际省」是真的能省的钱，
-        「机会成本」是用了它就吃不到更好组合的代价 —— 三者差距越大，券的水分越大。
+        「机会成本」是用了它就吃不到更好组合的代价 —— 用这三项数据判断一张券是否划算。
       </div>
     </div></details>`;
 }

@@ -76,7 +76,7 @@ Skill 本体（`skills/mcd-saver-strategist/`）可直接安装到 WorkBuddy 使
 | 能力 | 实现 | 关键设计 |
 |---|---|---|
 | 多目标选型 | `objective: cheapest/balanced/lightest/fewest` | 都以最低价为价格锚，只在容忍带内做次级优选，不为"均衡"报高价 |
-| 券体检 | `audit_coupons()` | 名义面额 / 实际节省 / **机会成本** 三口径；机会成本把"小券挤掉大组合"这种最贵的坑显式标出 |
+| 券体检 | `audit_coupons()` | 名义面额 / 实际节省 / **机会成本** 三口径；机会成本把"小券挤掉大组合"这种最容易被忽略的代价显式标出 |
 | 凑单建议 | `suggest_gap()` + `cheapest_filler()` | 子集和 DP 求"补上差额的最小代价组合"，净变化可能为负（加购反而更省）；先过用券互斥校验 |
 | 多人拼单 | `party_size` | 商品按份数计、优惠只计一次（保守，不报假低价）；输出人均 |
 | 帕累托前沿 | `pareto_frontier()` | 价格 × 热量不可支配解集，排序 + 扫描 O(n log n) |

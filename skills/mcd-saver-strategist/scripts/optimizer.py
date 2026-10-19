@@ -480,7 +480,7 @@ def audit_coupons(
       real_saving      允许加购时, 全局能达到的最大节省 (可能为负 = 白折腾)
       opportunity_cost 只用这张券 vs 全局最优, 要多花多少
 
-    兑现率 effective_rate = on_baseline / nominal, 越低说明"水分"越大。
+    兑现率 effective_rate = on_baseline / nominal, 越低说明名义面额与实际优惠的差额越大。
 
     判定: worth > marginal > suboptimal/trap > conditional > useless > invalid。
     其中 trap 是最反直觉的一类 —— 券本身在省钱, 但用了它就吃不到更划算的组合,
@@ -530,7 +530,7 @@ def audit_coupons(
         else:
             real_saving = None
 
-        # 券面本身就注水 (改价后不比原价低 / 折扣 >= 100%)
+        # 券面价不低于原价 (改价后不比原价低 / 折扣 >= 100%)
         watered = False
         if c["type"] == "item_price":
             prices = [by_code[x]["price"] for x in c.get("item_codes", []) if x in by_code]
@@ -549,7 +549,7 @@ def audit_coupons(
         elif on_baseline <= 0.01 and (real_saving or 0) <= 0.01:
             verdict, reason = "useless", "在当前点单下省不到钱"
         elif opportunity is not None and opportunity > 0.01:
-            # 单看它在省钱, 但用了它就吃不到更划算的组合 —— 这才是最大的坑
+            # 单看它在省钱, 但用了它就吃不到更划算的组合 —— 机会成本最高的一类
             if nominal and opportunity > nominal:
                 verdict = "trap"
                 reason = (f"名义省 {nominal:.2f} 元，但用了它会比最优组合多花 "
